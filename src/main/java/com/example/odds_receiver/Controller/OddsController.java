@@ -1,6 +1,8 @@
 package com.example.odds_receiver.Controller;
 
+import com.example.odds_receiver.Model.CornerMatch;
 import com.example.odds_receiver.Model.Match;
+import com.example.odds_receiver.Repository.CornerMatchRepository;
 import com.example.odds_receiver.Repository.MatchRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -19,7 +21,8 @@ public class OddsController {
 
     @Autowired
     private MatchRepository matchRepository;
-
+    @Autowired
+    private CornerMatchRepository cornerMatchRepository;
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -50,4 +53,40 @@ public class OddsController {
 
         return ResponseEntity.ok(Map.of("status", "success", "message", "Data stored successfully"));
     }
+
+
+    @PostMapping("/receive_corner_odds")
+    @Transactional
+    public ResponseEntity<?> receiveCornerOdds(@RequestBody List<CornerMatch> matches) {
+        if (matches == null || matches.isEmpty()) {
+            return ResponseEntity.badRequest().body("No valid data received");
+        }
+
+        matches.forEach(match -> {
+            match.getOdds().forEach(odd -> odd.setCornerMatch(match));
+            cornerMatchRepository.save(match);
+        });
+
+        // 检查记录数量是否超过12条
+        long count = cornerMatchRepository.count();
+        while (count > 12) {
+            cornerMatchRepository.deleteOldestCornerMatch();
+            count--;
+        }
+
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Corner data stored successfully"));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
