@@ -1,9 +1,7 @@
 package com.example.odds_receiver.Model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,8 +14,10 @@ import java.util.List;
 public class Match {
 
     @Id
-    private Long eventId; // 作为主键使用
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    private Long eventId;
     private String leagueName;
     private LocalDateTime matchTime;
     private String homeTeam;
@@ -26,11 +26,13 @@ public class Match {
     private Integer awayScore;
     private LocalDateTime insertedAt = LocalDateTime.now();
 
+
+
     @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    private List<Odd> odds;
+    private List<Odd> odds; // 关联到 Odd
+
+
 
     // Getters and Setters
 }
-
-

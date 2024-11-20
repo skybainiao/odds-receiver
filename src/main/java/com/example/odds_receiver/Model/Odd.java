@@ -18,8 +18,8 @@ public class Odd {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "event_id", referencedColumnName = "eventId", nullable = false)
-    private Match match; // 绑定到Match的eventId
+    @JoinColumn(name = "match_id", nullable = false)
+    private Match match; // 关联到 Match
 
     private String betType;
     private Integer periodNumber;
@@ -31,6 +31,8 @@ public class Odd {
     private Double overOdds;
     private Double underOdds;
     private LocalDateTime insertedAt = LocalDateTime.now();
+
+
 
     // Getters and Setters
 }

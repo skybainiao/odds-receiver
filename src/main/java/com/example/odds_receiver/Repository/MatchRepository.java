@@ -9,12 +9,18 @@ import java.time.LocalDateTime;
 public interface MatchRepository extends JpaRepository<Match, Long> {
 
     @Modifying
-    @Query(value = "DELETE FROM system.matches WHERE inserted_at < (SELECT operation_time FROM system.store_logs ORDER BY id ASC LIMIT 1)", nativeQuery = true)
+    @Query(value = "DELETE FROM system.matches WHERE event_id IN " +
+            "(SELECT event_id FROM system.matches ORDER BY inserted_at ASC LIMIT 1)", nativeQuery = true)
     void deleteMatchesByOldestLog();
 
+    @Modifying
+    @Query(value = "DELETE FROM system.match_store_logs WHERE id = (SELECT id FROM system.match_store_logs ORDER BY id ASC LIMIT 1)", nativeQuery = true)
+    void deleteOldestMatchLog();
 
     @Modifying
-    @Query(value = "DELETE FROM system.store_logs WHERE id = (SELECT id FROM system.store_logs ORDER BY id ASC LIMIT 1)", nativeQuery = true)
-    void deleteOldestLog();
+    @Query(value = "DELETE FROM system.odds WHERE event_id IN (SELECT event_id FROM system.matches ORDER BY inserted_at ASC LIMIT 1)", nativeQuery = true)
+    void deleteOddsByOldestMatch();
+
+
 
 }

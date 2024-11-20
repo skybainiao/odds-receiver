@@ -18,8 +18,8 @@ public class CornerOdd {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "event_id", referencedColumnName = "eventId", nullable = false)
-    private CornerMatch cornerMatch; // 绑定到CornerMatch的eventId
+    @JoinColumn(name = "corner_match_id", nullable = false)
+    private CornerMatch cornerMatch;
 
     private String betType;
     private Integer periodNumber;
@@ -30,6 +30,8 @@ public class CornerOdd {
     private Double overOdds;
     private Double underOdds;
     private LocalDateTime insertedAt = LocalDateTime.now();
+
+
 
     // Getters and Setters
 }
