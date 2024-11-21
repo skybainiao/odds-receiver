@@ -2,13 +2,13 @@ package com.example.odds_receiver.Model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "odds", schema = "system")
 public class Odd {
@@ -18,7 +18,7 @@ public class Odd {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "match_id", nullable = false)
+    @JoinColumn(name = "match_id", referencedColumnName = "id", nullable = false)
     private Match match; // 关联到 Match
 
     private String betType;
@@ -30,9 +30,7 @@ public class Odd {
     private Double drawOdds;
     private Double overOdds;
     private Double underOdds;
-    private LocalDateTime insertedAt = LocalDateTime.now();
 
-
-
-    // Getters and Setters
+    @Column(name = "inserted_at", nullable = false)
+    private LocalDateTime insertedAt;
 }

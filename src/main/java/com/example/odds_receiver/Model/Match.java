@@ -3,36 +3,33 @@ package com.example.odds_receiver.Model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "matches", schema = "system")
+@Table(name = "matches", schema = "system") // 移除 uniqueConstraints
 public class Match {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "event_id", nullable = false)
     private Long eventId;
+
     private String leagueName;
     private LocalDateTime matchTime;
     private String homeTeam;
     private String awayTeam;
     private Integer homeScore;
     private Integer awayScore;
-    private LocalDateTime insertedAt = LocalDateTime.now();
-
-
 
     @OneToMany(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
-    private List<Odd> odds; // 关联到 Odd
-
-
-
-    // Getters and Setters
+    private List<Odd> odds = new ArrayList<>(); // 初始化列表
 }

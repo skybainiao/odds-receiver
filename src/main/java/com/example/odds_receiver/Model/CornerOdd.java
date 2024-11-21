@@ -2,13 +2,13 @@ package com.example.odds_receiver.Model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "corner_odds", schema = "system")
 public class CornerOdd {
@@ -18,8 +18,8 @@ public class CornerOdd {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "corner_match_id", nullable = false)
-    private CornerMatch cornerMatch;
+    @JoinColumn(name = "corner_match_id", referencedColumnName = "id", nullable = false)
+    private CornerMatch cornerMatch; // 关联到 CornerMatch
 
     private String betType;
     private Integer periodNumber;
@@ -29,9 +29,7 @@ public class CornerOdd {
     private Double awayOdds;
     private Double overOdds;
     private Double underOdds;
-    private LocalDateTime insertedAt = LocalDateTime.now();
 
-
-
-    // Getters and Setters
+    @Column(name = "inserted_at", nullable = false)
+    private LocalDateTime insertedAt;
 }

@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface CornerMatchRepository extends JpaRepository<CornerMatch, Long> {
 
     @Modifying
@@ -19,5 +21,6 @@ public interface CornerMatchRepository extends JpaRepository<CornerMatch, Long> 
     @Query(value = "DELETE FROM system.corner_match_store_logs WHERE id = (SELECT id FROM system.corner_match_store_logs ORDER BY id ASC LIMIT 1)", nativeQuery = true)
     void deleteOldestCornerMatchLog();
 
+    Optional<CornerMatch> findByEventId(Long eventId);
 
 }
