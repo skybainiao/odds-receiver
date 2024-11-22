@@ -11,7 +11,9 @@ import java.util.Map;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "corner_matches2", schema = "system")
+@Table(name = "corner_matches2", schema = "system", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"leagueName", "matchTime", "homeTeam", "awayTeam"})
+})
 public class CornerMatch2 {
 
     @Id
@@ -24,8 +26,6 @@ public class CornerMatch2 {
     private String awayTeam;      // 客队名称
     private Integer homeScore;    // 主队得分
     private Integer awayScore;    // 客队得分
-    private Integer homeCorners;  // 主队角球数
-    private Integer awayCorners;  // 客队角球数
 
     @ElementCollection
     @CollectionTable(name = "corner_odds2", joinColumns = @JoinColumn(name = "corner_match_id"))

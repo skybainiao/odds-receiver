@@ -24,10 +24,7 @@ public class OddsController2 {
     @PostMapping("/matches")
     public ResponseEntity<String> receiveNormalMatches(@RequestBody List<Map<String, Object>> matches) {
         try {
-            // 转换 Map 数据为 Match2 对象
             List<Match2> matchEntities = matches.stream().map(this::mapToMatch).toList();
-
-            // 清空旧数据并插入新数据
             matchService2.replaceAllMatches(matchEntities);
             return ResponseEntity.ok("Matches and odds replaced successfully!");
         } catch (Exception e) {
@@ -55,18 +52,11 @@ public class OddsController2 {
 
 
 
-
-
-
     @PostMapping("/corner-matches")
     public ResponseEntity<String> receiveCornerMatches(@RequestBody List<Map<String, Object>> cornerMatches) {
         try {
-            // 转换 Map 数据为 CornerMatch2 对象
             List<CornerMatch2> cornerMatchEntities = cornerMatches.stream().map(this::mapToCornerMatch).toList();
-
-            // 存储到数据库
-            cornerMatchService2.saveOrUpdateMatches(cornerMatchEntities);
-
+            cornerMatchService2.replaceAllCornerMatches(cornerMatchEntities);
             return ResponseEntity.ok("Corner matches received and saved successfully!");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error saving corner matches: " + e.getMessage());
@@ -83,12 +73,11 @@ public class OddsController2 {
         // 使用安全转换方法
         cornerMatch.setHomeScore(parseInteger(matchData.getOrDefault("home_score", 0)));
         cornerMatch.setAwayScore(parseInteger(matchData.getOrDefault("away_score", 0)));
-        cornerMatch.setHomeCorners(parseInteger(matchData.getOrDefault("home_corners", 0)));
-        cornerMatch.setAwayCorners(parseInteger(matchData.getOrDefault("away_corners", 0)));
+
 
         // 动态存储赔率字段
         Map<String, String> odds = matchData.entrySet().stream()
-                .filter(entry -> !List.of("league", "match_time", "home_team", "away_team", "home_score", "away_score", "home_corners", "away_corners").contains(entry.getKey()))
+                .filter(entry -> !List.of("league", "match_time", "home_team", "away_team", "home_score", "away_score").contains(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.valueOf(entry.getValue())));
 
         cornerMatch.setOdds(odds);
@@ -104,11 +93,10 @@ public class OddsController2 {
             try {
                 return Integer.parseInt((String) value);
             } catch (NumberFormatException e) {
-                System.err.println("无法解析整数值: " + value);
-                return 0; // 或者抛出异常，或者返回默认值
+                return null; // 或者抛出异常，或者返回默认值
             }
         }
-        return 0; // 默认值
+        return null; // 默认值
     }
 
 
