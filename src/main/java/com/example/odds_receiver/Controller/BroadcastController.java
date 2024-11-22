@@ -1,13 +1,11 @@
 package com.example.odds_receiver.Controller;
 
+import com.example.odds_receiver.DTO.CornerMatch2BasicDTO;
 import com.example.odds_receiver.DTO.CornerMatchBasicDTO;
+import com.example.odds_receiver.DTO.Match2BasicDTO;
 import com.example.odds_receiver.DTO.MatchBasicDTO;
-import com.example.odds_receiver.Model.CornerMatch;
-import com.example.odds_receiver.Model.Match;
-import com.example.odds_receiver.Model.Odd;
-import com.example.odds_receiver.Repository.CornerMatchRepository;
-import com.example.odds_receiver.Repository.MatchRepository;
-import com.example.odds_receiver.Repository.OddRepository;
+import com.example.odds_receiver.Model.*;
+import com.example.odds_receiver.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +19,12 @@ public class BroadcastController {
 
     @Autowired
     private MatchRepository matchRepository;
-
-    @Autowired
-    private OddRepository oddRepository;
-
     @Autowired
     private CornerMatchRepository cornerMatchRepository;
+    @Autowired
+    private MatchRepository2 matchRepository2;
+    @Autowired
+    private CornerMatchRepository2 cornerMatchRepository2;
 
 
 
@@ -74,7 +72,47 @@ public class BroadcastController {
     }
 
 
+    @GetMapping("/matches2/basic")
+    public ResponseEntity<List<Match2BasicDTO>> getAllBasicMatches2() {
+        // 查询所有 Match2
+        List<Match2> matches2 = matchRepository2.findAll();
 
+        // 转换为 DTO
+        List<Match2BasicDTO> match2DTOs = matches2.stream()
+                .map(match -> new Match2BasicDTO(
+                        match.getId(),
+                        match.getLeagueName(),
+                        match.getMatchTime(),
+                        match.getHomeTeam(),
+                        match.getAwayTeam(),
+                        match.getHomeScore(),
+                        match.getAwayScore(),
+                        match.getInsertedAt()))
+                .toList();
+
+        return ResponseEntity.ok(match2DTOs);
+    }
+
+    @GetMapping("/corner-matches2/basic")
+    public ResponseEntity<List<CornerMatch2BasicDTO>> getAllBasicCornerMatches2() {
+        // 查询所有 CornerMatch2
+        List<CornerMatch2> cornerMatches2 = cornerMatchRepository2.findAll();
+
+        // 转换为 DTO
+        List<CornerMatch2BasicDTO> cornerMatch2DTOs = cornerMatches2.stream()
+                .map(match -> new CornerMatch2BasicDTO(
+                        match.getId(),
+                        match.getLeagueName(),
+                        match.getMatchTime(),
+                        match.getHomeTeam(),
+                        match.getAwayTeam(),
+                        match.getHomeScore(),
+                        match.getAwayScore(),
+                        match.getInsertedAt()))
+                .toList();
+
+        return ResponseEntity.ok(cornerMatch2DTOs);
+    }
 
 
 
