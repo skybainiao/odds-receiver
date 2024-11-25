@@ -45,47 +45,30 @@ public class OddsController {
     @Transactional
     public ResponseEntity<?> receiveOdds(@RequestBody List<Match> incomingMatches) {
         if (incomingMatches == null || incomingMatches.isEmpty()) {
-            return ResponseEntity.badRequest().body("No valid data received");
+            logger.warn("No valid data received in /receive_odds_server1");
+            return ResponseEntity.ok(Map.of("status", "success", "message", "No data received, no operations performed"));
         }
 
-        // 当前批次时间，截断到秒
         LocalDateTime batchTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         logger.info("Receiving odds batch at {}", batchTime);
 
         for (Match incomingMatch : incomingMatches) {
-            // 根据 eventId 查找现有 Match
             Optional<Match> optionalMatch = matchRepository.findByEventId(incomingMatch.getEventId());
+            Match match = optionalMatch.orElseGet(Match::new);
 
-            Match match;
-            if (optionalMatch.isPresent()) {
-                match = optionalMatch.get();
-                // 更新 Match 字段
-                match.setLeagueName(incomingMatch.getLeagueName());
-                match.setMatchTime(incomingMatch.getMatchTime());
-                match.setHomeTeam(incomingMatch.getHomeTeam());
-                match.setAwayTeam(incomingMatch.getAwayTeam());
-                match.setHomeScore(incomingMatch.getHomeScore());
-                match.setAwayScore(incomingMatch.getAwayScore());
-                logger.info("Updating existing Match with eventId {}", incomingMatch.getEventId());
-            } else {
-                // 创建新的 Match
-                match = new Match();
-                match.setEventId(incomingMatch.getEventId());
-                match.setLeagueName(incomingMatch.getLeagueName());
-                match.setMatchTime(incomingMatch.getMatchTime());
-                match.setHomeTeam(incomingMatch.getHomeTeam());
-                match.setAwayTeam(incomingMatch.getAwayTeam());
-                match.setHomeScore(incomingMatch.getHomeScore());
-                match.setAwayScore(incomingMatch.getAwayScore());
-                logger.info("Creating new Match with eventId {}", incomingMatch.getEventId());
-            }
+            match.setEventId(incomingMatch.getEventId());
+            match.setLeagueName(incomingMatch.getLeagueName());
+            match.setMatchTime(incomingMatch.getMatchTime());
+            match.setHomeTeam(incomingMatch.getHomeTeam());
+            match.setAwayTeam(incomingMatch.getAwayTeam());
+            match.setHomeScore(incomingMatch.getHomeScore());
+            match.setAwayScore(incomingMatch.getAwayScore());
 
-            // 处理 Odds
             List<Odd> incomingOdds = incomingMatch.getOdds();
             if (incomingOdds != null) {
                 for (Odd incomingOdd : incomingOdds) {
                     Odd newOdd = new Odd();
-                    newOdd.setMatch(match); // 关联到 Match
+                    newOdd.setMatch(match);
                     newOdd.setBetType(incomingOdd.getBetType());
                     newOdd.setPeriodNumber(incomingOdd.getPeriodNumber());
                     newOdd.setHdp(incomingOdd.getHdp());
@@ -95,24 +78,21 @@ public class OddsController {
                     newOdd.setDrawOdds(incomingOdd.getDrawOdds());
                     newOdd.setOverOdds(incomingOdd.getOverOdds());
                     newOdd.setUnderOdds(incomingOdd.getUnderOdds());
-                    newOdd.setInsertedAt(batchTime); // 设置插入时间为批次时间
+                    newOdd.setInsertedAt(batchTime);
 
-                    // 添加到 Match 的 odds 列表
                     match.getOdds().add(newOdd);
-                    logger.debug("Added Odd with insertedAt {} to Match {}", batchTime, match.getEventId());
                 }
             }
 
-            // 保存 Match 和关联的 Odds
             matchRepository.save(match);
             logger.info("Saved Match with eventId {}", match.getEventId());
         }
 
-        // 管理批次数量
         manageBatchLimit("odds");
 
-        return ResponseEntity.ok(Map.of("status", "success", "message", "Data stored successfully"));
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Data processed successfully"));
     }
+
 
     /**
      * 接收脚球比赛赔率数据
@@ -121,47 +101,30 @@ public class OddsController {
     @Transactional
     public ResponseEntity<?> receiveCornerOdds(@RequestBody List<CornerMatch> incomingCornerMatches) {
         if (incomingCornerMatches == null || incomingCornerMatches.isEmpty()) {
-            return ResponseEntity.badRequest().body("No valid data received");
+            logger.warn("No valid data received in /receive_corner_odds");
+            return ResponseEntity.ok(Map.of("status", "success", "message", "No data received, no operations performed"));
         }
 
-        // 当前批次时间，截断到秒
         LocalDateTime batchTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         logger.info("Receiving corner odds batch at {}", batchTime);
 
         for (CornerMatch incomingMatch : incomingCornerMatches) {
-            // 根据 eventId 查找现有 CornerMatch
             Optional<CornerMatch> optionalMatch = cornerMatchRepository.findByEventId(incomingMatch.getEventId());
+            CornerMatch match = optionalMatch.orElseGet(CornerMatch::new);
 
-            CornerMatch match;
-            if (optionalMatch.isPresent()) {
-                match = optionalMatch.get();
-                // 更新 CornerMatch 字段
-                match.setLeagueName(incomingMatch.getLeagueName());
-                match.setMatchTime(incomingMatch.getMatchTime());
-                match.setHomeTeam(incomingMatch.getHomeTeam());
-                match.setAwayTeam(incomingMatch.getAwayTeam());
-                match.setHomeScore(incomingMatch.getHomeScore());
-                match.setAwayScore(incomingMatch.getAwayScore());
-                logger.info("Updating existing CornerMatch with eventId {}", incomingMatch.getEventId());
-            } else {
-                // 创建新的 CornerMatch
-                match = new CornerMatch();
-                match.setEventId(incomingMatch.getEventId());
-                match.setLeagueName(incomingMatch.getLeagueName());
-                match.setMatchTime(incomingMatch.getMatchTime());
-                match.setHomeTeam(incomingMatch.getHomeTeam());
-                match.setAwayTeam(incomingMatch.getAwayTeam());
-                match.setHomeScore(incomingMatch.getHomeScore());
-                match.setAwayScore(incomingMatch.getAwayScore());
-                logger.info("Creating new CornerMatch with eventId {}", incomingMatch.getEventId());
-            }
+            match.setEventId(incomingMatch.getEventId());
+            match.setLeagueName(incomingMatch.getLeagueName());
+            match.setMatchTime(incomingMatch.getMatchTime());
+            match.setHomeTeam(incomingMatch.getHomeTeam());
+            match.setAwayTeam(incomingMatch.getAwayTeam());
+            match.setHomeScore(incomingMatch.getHomeScore());
+            match.setAwayScore(incomingMatch.getAwayScore());
 
-            // 处理 CornerOdds
             List<CornerOdd> incomingOdds = incomingMatch.getOdds();
             if (incomingOdds != null) {
                 for (CornerOdd incomingOdd : incomingOdds) {
                     CornerOdd newOdd = new CornerOdd();
-                    newOdd.setCornerMatch(match); // 关联到 CornerMatch
+                    newOdd.setCornerMatch(match);
                     newOdd.setBetType(incomingOdd.getBetType());
                     newOdd.setPeriodNumber(incomingOdd.getPeriodNumber());
                     newOdd.setHdp(incomingOdd.getHdp());
@@ -170,24 +133,21 @@ public class OddsController {
                     newOdd.setAwayOdds(incomingOdd.getAwayOdds());
                     newOdd.setOverOdds(incomingOdd.getOverOdds());
                     newOdd.setUnderOdds(incomingOdd.getUnderOdds());
-                    newOdd.setInsertedAt(batchTime); // 设置插入时间为批次时间
+                    newOdd.setInsertedAt(batchTime);
 
-                    // 添加到 CornerMatch 的 odds 列表
                     match.getOdds().add(newOdd);
-                    logger.debug("Added CornerOdd with insertedAt {} to CornerMatch {}", batchTime, match.getEventId());
                 }
             }
 
-            // 保存 CornerMatch 和关联的 CornerOdds
             cornerMatchRepository.save(match);
             logger.info("Saved CornerMatch with eventId {}", match.getEventId());
         }
 
-        // 管理批次数量
         manageBatchLimit("corner_odds");
 
-        return ResponseEntity.ok(Map.of("status", "success", "message", "Corner data stored successfully"));
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Corner data processed successfully"));
     }
+
 
     /**
      * 管理赔率数据的批次数量，确保每种类型的批次数量不超过 MAX_BATCH_COUNT。
