@@ -23,28 +23,41 @@ public class BindingController {
 
     // 创建新的绑定记录
     @PostMapping
-    public ResponseEntity<Binding> createBinding(@RequestBody BindingDTO bindingDTO) {
-        // 添加日志输出
-        System.out.println("Received BindingDTO:");
-        System.out.println("League1Name: " + bindingDTO.getLeague1Name());
-        System.out.println("League2Name: " + bindingDTO.getLeague2Name());
-        System.out.println("HomeTeam1Name: " + bindingDTO.getHomeTeam1Name());
-        System.out.println("HomeTeam2Name: " + bindingDTO.getHomeTeam2Name());
-        System.out.println("AwayTeam1Name: " + bindingDTO.getAwayTeam1Name());
-        System.out.println("AwayTeam2Name: " + bindingDTO.getAwayTeam2Name());
+    public ResponseEntity<String> createBindings(@RequestBody List<BindingDTO> bindingDTOs) {
+        int addedCount = 0;
+        int duplicateCount = 0;
 
-        Binding binding = new Binding(
-                null, // ID 自动生成
-                bindingDTO.getLeague1Name(),
-                bindingDTO.getLeague2Name(),
-                bindingDTO.getHomeTeam1Name(),
-                bindingDTO.getHomeTeam2Name(),
-                bindingDTO.getAwayTeam1Name(),
-                bindingDTO.getAwayTeam2Name()
-        );
-        Binding savedBinding = bindingRepository.save(binding);
-        return ResponseEntity.ok(savedBinding);
+        for (BindingDTO dto : bindingDTOs) {
+            boolean exists = bindingRepository.existsByLeague1NameAndLeague2NameAndHomeTeam1NameAndHomeTeam2NameAndAwayTeam1NameAndAwayTeam2Name(
+                    dto.getLeague1Name(),
+                    dto.getLeague2Name(),
+                    dto.getHomeTeam1Name(),
+                    dto.getHomeTeam2Name(),
+                    dto.getAwayTeam1Name(),
+                    dto.getAwayTeam2Name()
+            );
+
+            if (!exists) {
+                Binding binding = new Binding(
+                        null,
+                        dto.getLeague1Name(),
+                        dto.getLeague2Name(),
+                        dto.getHomeTeam1Name(),
+                        dto.getHomeTeam2Name(),
+                        dto.getAwayTeam1Name(),
+                        dto.getAwayTeam2Name()
+                );
+                bindingRepository.save(binding);
+                addedCount++;
+            } else {
+                duplicateCount++;
+            }
+        }
+
+        String resultMessage = String.format("成功添加: %d 条记录, 重复: %d 条记录", addedCount, duplicateCount);
+        return ResponseEntity.ok(resultMessage);
     }
+
 
     // 获取所有绑定记录
     @GetMapping

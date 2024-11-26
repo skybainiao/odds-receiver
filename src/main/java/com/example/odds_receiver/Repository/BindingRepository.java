@@ -9,5 +9,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BindingRepository extends JpaRepository<Binding, Long> {
-    // 如果需要，可以在这里添加自定义查询方法
+    boolean existsByLeague1NameAndLeague2NameAndHomeTeam1NameAndHomeTeam2NameAndAwayTeam1NameAndAwayTeam2Name(
+            String league1Name,
+            String league2Name,
+            String homeTeam1Name,
+            String homeTeam2Name,
+            String awayTeam1Name,
+            String awayTeam2Name
+    );
 }
+
