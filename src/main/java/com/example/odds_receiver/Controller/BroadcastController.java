@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -29,7 +31,7 @@ public class BroadcastController {
 
 
     @GetMapping("/matches/basic")
-    public ResponseEntity<List<MatchBasicDTO>> getAllBasicMatches() {
+    public ResponseEntity<Map<String, Object>> getAllBasicMatches() {
         // 查询所有比赛
         List<Match> matches = matchRepository.findAll();
 
@@ -46,7 +48,11 @@ public class BroadcastController {
                         match.getAwayScore()))
                 .toList();
 
-        return ResponseEntity.ok(matchBasicDTOs);
+        Map<String, Object> response = new HashMap<>();
+        response.put("matchCount", matchBasicDTOs.size());
+        response.put("matches", matchBasicDTOs);
+
+        return ResponseEntity.ok(response);
     }
 
 
@@ -73,7 +79,7 @@ public class BroadcastController {
 
 
     @GetMapping("/matches2/basic")
-    public ResponseEntity<List<Match2BasicDTO>> getAllBasicMatches2() {
+    public ResponseEntity<Map<String, Object>> getAllBasicMatches2() {
         // 查询所有 Match2
         List<Match2> matches2 = matchRepository2.findAll();
 
@@ -90,7 +96,11 @@ public class BroadcastController {
                         match.getInsertedAt()))
                 .toList();
 
-        return ResponseEntity.ok(match2DTOs);
+        Map<String, Object> response = new HashMap<>();
+        response.put("matchCount", match2DTOs.size());
+        response.put("matches", match2DTOs);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/corner-matches2/basic")
