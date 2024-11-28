@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class OddsController {
@@ -39,7 +40,7 @@ public class OddsController {
     private static final Logger logger = LoggerFactory.getLogger(OddsController.class);
 
     /**
-     * 接收普通比赛赔率数据
+     * 接收普通比赛赔率数据，并删除不在新数据中的旧比赛记录
      */
     @PostMapping("/receive_odds_server1")
     @Transactional
@@ -52,47 +53,64 @@ public class OddsController {
         LocalDateTime batchTime = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         logger.info("Receiving odds batch at {}", batchTime);
 
-        for (Match incomingMatch : incomingMatches) {
-            Optional<Match> optionalMatch = matchRepository.findByEventId(incomingMatch.getEventId());
-            Match match = optionalMatch.orElseGet(Match::new);
+        try {
+            // 1. 收集所有 incomingMatches 的 eventId
+            List<Long> incomingEventIds = incomingMatches.stream()
+                    .map(Match::getEventId)
+                    .collect(Collectors.toList());
 
-            match.setEventId(incomingMatch.getEventId());
-            match.setLeagueName(incomingMatch.getLeagueName());
-            match.setMatchTime(incomingMatch.getMatchTime());
-            match.setHomeTeam(incomingMatch.getHomeTeam());
-            match.setAwayTeam(incomingMatch.getAwayTeam());
-            match.setHomeScore(incomingMatch.getHomeScore());
-            match.setAwayScore(incomingMatch.getAwayScore());
+            // 2. 删除不在 incomingEventIds 中的旧 Match 记录
+            matchRepository.deleteMatchesNotIn(incomingEventIds);
+            logger.info("Deleted old Match records not present in incoming data.");
 
-            List<Odd> incomingOdds = incomingMatch.getOdds();
-            if (incomingOdds != null) {
-                for (Odd incomingOdd : incomingOdds) {
-                    Odd newOdd = new Odd();
-                    newOdd.setMatch(match);
-                    newOdd.setBetType(incomingOdd.getBetType());
-                    newOdd.setPeriodNumber(incomingOdd.getPeriodNumber());
-                    newOdd.setHdp(incomingOdd.getHdp());
-                    newOdd.setPoints(incomingOdd.getPoints());
-                    newOdd.setHomeOdds(incomingOdd.getHomeOdds());
-                    newOdd.setAwayOdds(incomingOdd.getAwayOdds());
-                    newOdd.setDrawOdds(incomingOdd.getDrawOdds());
-                    newOdd.setOverOdds(incomingOdd.getOverOdds());
-                    newOdd.setUnderOdds(incomingOdd.getUnderOdds());
-                    newOdd.setInsertedAt(batchTime);
+            // 3. 处理 incomingMatches
+            for (Match incomingMatch : incomingMatches) {
+                Optional<Match> optionalMatch = matchRepository.findByEventId(incomingMatch.getEventId());
+                Match match = optionalMatch.orElseGet(Match::new);
 
-                    match.getOdds().add(newOdd);
+                match.setEventId(incomingMatch.getEventId());
+                match.setLeagueName(incomingMatch.getLeagueName());
+                match.setMatchTime(incomingMatch.getMatchTime());
+                match.setHomeTeam(incomingMatch.getHomeTeam());
+                match.setAwayTeam(incomingMatch.getAwayTeam());
+                match.setHomeScore(incomingMatch.getHomeScore());
+                match.setAwayScore(incomingMatch.getAwayScore());
+
+                List<Odd> incomingOdds = incomingMatch.getOdds();
+                if (incomingOdds != null) {
+                    // 清空现有的 Odds
+                    match.getOdds().clear();
+                    for (Odd incomingOdd : incomingOdds) {
+                        Odd newOdd = new Odd();
+                        newOdd.setMatch(match);
+                        newOdd.setBetType(incomingOdd.getBetType());
+                        newOdd.setPeriodNumber(incomingOdd.getPeriodNumber());
+                        newOdd.setHdp(incomingOdd.getHdp());
+                        newOdd.setPoints(incomingOdd.getPoints());
+                        newOdd.setHomeOdds(incomingOdd.getHomeOdds());
+                        newOdd.setAwayOdds(incomingOdd.getAwayOdds());
+                        newOdd.setDrawOdds(incomingOdd.getDrawOdds());
+                        newOdd.setOverOdds(incomingOdd.getOverOdds());
+                        newOdd.setUnderOdds(incomingOdd.getUnderOdds());
+                        newOdd.setInsertedAt(batchTime);
+
+                        match.getOdds().add(newOdd);
+                    }
                 }
+
+                matchRepository.save(match);
+                logger.info("Saved Match with eventId {}", match.getEventId());
             }
 
-            matchRepository.save(match);
-            logger.info("Saved Match with eventId {}", match.getEventId());
+            // 4. 管理赔率批次数量限制
+            manageBatchLimit("odds");
+
+            return ResponseEntity.ok(Map.of("status", "success", "message", "Data processed successfully"));
+        } catch (Exception e) {
+            logger.error("Error processing odds data: {}", e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("status", "error", "message", "Internal server error"));
         }
-
-        manageBatchLimit("odds");
-
-        return ResponseEntity.ok(Map.of("status", "success", "message", "Data processed successfully"));
     }
-
 
     /**
      * 接收脚球比赛赔率数据
@@ -122,6 +140,7 @@ public class OddsController {
 
             List<CornerOdd> incomingOdds = incomingMatch.getOdds();
             if (incomingOdds != null) {
+                match.getOdds().clear();
                 for (CornerOdd incomingOdd : incomingOdds) {
                     CornerOdd newOdd = new CornerOdd();
                     newOdd.setCornerMatch(match);
@@ -147,7 +166,6 @@ public class OddsController {
 
         return ResponseEntity.ok(Map.of("status", "success", "message", "Corner data processed successfully"));
     }
-
 
     /**
      * 管理赔率数据的批次数量，确保每种类型的批次数量不超过 MAX_BATCH_COUNT。

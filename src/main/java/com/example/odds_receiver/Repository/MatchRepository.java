@@ -1,10 +1,14 @@
 package com.example.odds_receiver.Repository;
 
 import com.example.odds_receiver.Model.Match;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface MatchRepository extends JpaRepository<Match, Long> {
@@ -23,5 +27,10 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     void deleteOddsByOldestMatch();
 
     Optional<Match> findByEventId(Long eventId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Match m WHERE m.eventId NOT IN :eventIds")
+    void deleteMatchesNotIn(@Param("eventIds") List<Long> eventIds);
 
 }
