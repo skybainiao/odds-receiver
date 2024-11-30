@@ -16,4 +16,8 @@ public class BindingDTO {
     private String homeTeam2Name;
     private String awayTeam1Name;
     private String awayTeam2Name;
+
+    // 新增的数据来源字段
+    private Integer dataSource1;
+    private Integer dataSource2;
 }

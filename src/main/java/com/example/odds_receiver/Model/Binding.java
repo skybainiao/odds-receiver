@@ -32,4 +32,11 @@ public class Binding {
 
     @Column(name = "away_team2_name", nullable = false)
     private String awayTeam2Name;
+
+    // 新增的数据来源字段
+    @Column(name = "data_source1", nullable = false)
+    private Integer dataSource1;
+
+    @Column(name = "data_source2", nullable = false)
+    private Integer dataSource2;
 }

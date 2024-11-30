@@ -45,7 +45,9 @@ public class BindingController {
                         dto.getHomeTeam1Name(),
                         dto.getHomeTeam2Name(),
                         dto.getAwayTeam1Name(),
-                        dto.getAwayTeam2Name()
+                        dto.getAwayTeam2Name(),
+                        dto.getDataSource1(), // 设置 dataSource1
+                        dto.getDataSource2()  // 设置 dataSource2
                 );
                 bindingRepository.save(binding);
                 addedCount++;
@@ -71,7 +73,9 @@ public class BindingController {
                         binding.getHomeTeam1Name(),
                         binding.getHomeTeam2Name(),
                         binding.getAwayTeam1Name(),
-                        binding.getAwayTeam2Name()
+                        binding.getAwayTeam2Name(),
+                        binding.getDataSource1(), // 设置 dataSource1
+                        binding.getDataSource2()  // 设置 dataSource2
                 ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(bindingDTOs);
