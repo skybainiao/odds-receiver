@@ -74,8 +74,8 @@ public class BindingController {
                         binding.getHomeTeam2Name(),
                         binding.getAwayTeam1Name(),
                         binding.getAwayTeam2Name(),
-                        binding.getDataSource1(), // 设置 dataSource1
-                        binding.getDataSource2()  // 设置 dataSource2
+                        binding.getDataSource1(),
+                        binding.getDataSource2()
                 ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(bindingDTOs);
