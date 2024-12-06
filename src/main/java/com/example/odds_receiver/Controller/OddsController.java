@@ -78,8 +78,9 @@ public class OddsController {
 
                 List<Odd> incomingOdds = incomingMatch.getOdds();
                 if (incomingOdds != null) {
-                    // 清空现有的 Odds
-                    match.getOdds().clear();
+                    // 移除清空现有的 Odds
+                    // match.getOdds().clear(); // 已移除
+
                     for (Odd incomingOdd : incomingOdds) {
                         Odd newOdd = new Odd();
                         newOdd.setMatch(match);
@@ -140,7 +141,9 @@ public class OddsController {
 
             List<CornerOdd> incomingOdds = incomingMatch.getOdds();
             if (incomingOdds != null) {
-                match.getOdds().clear();
+                // 移除清空现有的 CornerOdds
+                // match.getOdds().clear(); // 已移除
+
                 for (CornerOdd incomingOdd : incomingOdds) {
                     CornerOdd newOdd = new CornerOdd();
                     newOdd.setCornerMatch(match);
@@ -190,8 +193,8 @@ public class OddsController {
             throw new IllegalArgumentException("Invalid odds type: " + oddsType);
         }
 
-        // 统计不同批次的数量，基于 inserted_at 截断到秒
-        String countDistinctBatchQuery = "SELECT COUNT(DISTINCT date_trunc('second', inserted_at)) FROM " + tableName;
+        // 统计不同批次的数量，基于 inserted_at
+        String countDistinctBatchQuery = "SELECT COUNT(DISTINCT inserted_at) FROM " + tableName;
         Query batchCountQuery = entityManager.createNativeQuery(countDistinctBatchQuery);
         long batchCount = ((Number) batchCountQuery.getSingleResult()).longValue();
 
@@ -199,8 +202,8 @@ public class OddsController {
 
         if (batchCount > MAX_BATCH_COUNT) {
             // 获取最早的批次时间
-            String oldestBatchQueryStr = "SELECT date_trunc('second', inserted_at) FROM " + tableName +
-                    " ORDER BY date_trunc('second', inserted_at) ASC LIMIT 1";
+            String oldestBatchQueryStr = "SELECT inserted_at FROM " + tableName +
+                    " ORDER BY inserted_at ASC LIMIT 1";
 
             Query oldestBatchQuery = entityManager.createNativeQuery(oldestBatchQueryStr);
             Object oldestBatchTimeObj = oldestBatchQuery.getSingleResult();
